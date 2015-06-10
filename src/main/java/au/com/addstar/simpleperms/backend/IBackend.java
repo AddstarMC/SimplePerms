@@ -18,4 +18,6 @@ public interface IBackend
 	public void save(PermissionBase object);
 	
 	public void shutdown();
+	
+	public boolean isValid();
 }
