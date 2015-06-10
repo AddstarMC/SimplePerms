@@ -3,15 +3,15 @@ package au.com.addstar.simpleperms.backend;
 import java.util.List;
 import java.util.UUID;
 
+import net.md_5.bungee.config.Configuration;
 import au.com.addstar.simpleperms.permissions.PermissionBase;
 import au.com.addstar.simpleperms.permissions.PermissionGroup;
 import au.com.addstar.simpleperms.permissions.PermissionUser;
 
 public class MySQLBackend implements IBackend
 {
-	public void initialize()
+	public void initialize(Configuration config)
 	{
-		// TODO: Take config as argument
 		throw new UnsupportedOperationException("Not yet implemented");
 	}
 	
