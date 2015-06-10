@@ -1,0 +1,5 @@
+name: SimplePerms
+author: Schmoller
+version: ${project.version}
+
+main: au.com.addstar.simpleperms.PermsPlugin
