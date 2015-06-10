@@ -1,20 +1,28 @@
 package au.com.addstar.simpleperms.permissions;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 public abstract class PermissionBase
 {
-	private String name;
+	private List<PermissionGroup> parents;
 	
 	private List<String> rawPermissions;
 	
 	private Map<String, Boolean> staticPermissions;
 	private Map<String, Boolean> dynamicPermissions;
 	
-	public String getName()
+	protected PermissionBase(List<String> rawPermissions)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		this.rawPermissions = rawPermissions;
+		
+		parents = Lists.newArrayList();
+		staticPermissions = Maps.newHashMap();
+		dynamicPermissions = Maps.newHashMap();
 	}
 	
 	public boolean hasPermission(String permission)
@@ -34,7 +42,12 @@ public abstract class PermissionBase
 	
 	public List<PermissionGroup> parents()
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		return Collections.unmodifiableList(parents);
+	}
+	
+	public void addParent(PermissionGroup parent)
+	{
+		parents.add(parent);
 	}
 	
 	public void save()

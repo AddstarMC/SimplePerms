@@ -19,6 +19,7 @@ public class PermsPlugin extends Plugin
 			getLogger().warning("The configuration file failed to load! This will not work");
 		
 		permManager = new PermissionManager(this);
+		permManager.load();
 	}
 	
 	@Override

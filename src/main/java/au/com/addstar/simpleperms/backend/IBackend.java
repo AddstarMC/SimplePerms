@@ -1,6 +1,6 @@
 package au.com.addstar.simpleperms.backend;
 
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import au.com.addstar.simpleperms.permissions.PermissionBase;
@@ -9,7 +9,7 @@ import au.com.addstar.simpleperms.permissions.PermissionUser;
 
 public interface IBackend
 {
-	public List<PermissionGroup> loadAllGroups();
+	public Map<String, PermissionGroup> loadAllGroups();
 	
 	public PermissionGroup loadGroup(String groupName);
 	

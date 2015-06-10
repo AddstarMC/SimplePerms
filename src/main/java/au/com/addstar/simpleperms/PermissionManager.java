@@ -2,6 +2,7 @@ package au.com.addstar.simpleperms;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import au.com.addstar.simpleperms.backend.IBackend;
 import au.com.addstar.simpleperms.backend.MySQLBackend;
@@ -9,6 +10,8 @@ import au.com.addstar.simpleperms.permissions.PermissionGroup;
 import au.com.addstar.simpleperms.permissions.PermissionUser;
 
 import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Maps;
 
 public class PermissionManager
 {
@@ -21,6 +24,9 @@ public class PermissionManager
 	public PermissionManager(PermsPlugin plugin)
 	{
 		this.plugin = plugin;
+		
+		cachedUsers = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
+		groups = Maps.newHashMap();
 		
 		backend = new MySQLBackend(plugin.getConfigManager().getConfig(), plugin.getLogger());
 		if (!backend.isValid())
@@ -35,7 +41,11 @@ public class PermissionManager
 	
 	public void load()
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		if (backend == null)
+			return;
+		
+		groups = backend.loadAllGroups();
+		plugin.getLogger().info("Loaded " + groups.size() + " permission groups");
 	}
 	
 	public PermissionUser getUser(UUID id)
@@ -45,6 +55,6 @@ public class PermissionManager
 	
 	public PermissionGroup getGroup(String name)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		return groups.get(name.toLowerCase());
 	}
 }

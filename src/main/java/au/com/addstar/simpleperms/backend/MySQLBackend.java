@@ -3,13 +3,20 @@ package au.com.addstar.simpleperms.backend;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import net.md_5.bungee.config.Configuration;
 import au.com.addstar.simpleperms.permissions.PermissionBase;
 import au.com.addstar.simpleperms.permissions.PermissionGroup;
@@ -22,7 +29,7 @@ public class MySQLBackend implements IBackend
 	
 	private PreparedStatement loadGroups;
 	private PreparedStatement loadObject;
-	private PreparedStatement loadChildren;
+	private PreparedStatement loadParents;
 	
 	public MySQLBackend(Configuration config, Logger logger)
 	{
@@ -88,7 +95,7 @@ public class MySQLBackend implements IBackend
 			catch (SQLException e)
 			{
 				// Create it
-				statement.executeUpdate("CREATE TABLE `hierarchy` (`idx` INTEGER AUTO_INCREMENT PRIMARY KEY, `parentid` VARCHAR(36) NOT NULL, `childid` VARCHAR(36) NOT NULL, INDEX (`parentid`, `idx`));");
+				statement.executeUpdate("CREATE TABLE `hierarchy` (`idx` INTEGER AUTO_INCREMENT PRIMARY KEY, `childid` VARCHAR(36) NOT NULL, `parentid` VARCHAR(36) NOT NULL, INDEX (`childid`, `idx`));");
 			}
 			
 			statement.close();
@@ -107,7 +114,7 @@ public class MySQLBackend implements IBackend
 		{
 			loadGroups = connection.prepareStatement("SELECT `objectid` FROM `objects` WHERE `type`=1;");
 			loadObject = connection.prepareStatement("SELECT `permission` FROM `permissions` WHERE `objectid`=?;");
-			loadChildren = connection.prepareStatement("SELECT `childid` FROM `hierarchy` WHERE `parentid`=?;");
+			loadParents = connection.prepareStatement("SELECT `parentid` FROM `hierarchy` WHERE `childid`=?;");
 			return true;
 		}
 		catch (SQLException e)
@@ -118,9 +125,88 @@ public class MySQLBackend implements IBackend
 	}
 	
 	@Override
-	public List<PermissionGroup> loadAllGroups()
+	public Map<String, PermissionGroup> loadAllGroups()
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		try
+		{
+			// Load group names
+			List<String> names = Lists.newArrayList();
+			ResultSet rs = loadGroups.executeQuery();
+			
+			while(rs.next())
+				names.add(rs.getString(1));
+			
+			rs.close();
+			
+			// Load group contents
+			Map<String, PermissionGroup> groups = Maps.newHashMapWithExpectedSize(names.size());
+			ListMultimap<String, String> parents = ArrayListMultimap.create();
+			
+			for (String name : names)
+			{
+				groups.put(name.toLowerCase(), new PermissionGroup(name, loadPermissions(name)));
+				parents.putAll(name, loadParents(name));
+			}
+			
+			// Compute hierarchy
+			for (PermissionGroup group : groups.values())
+			{
+				List<String> parentNames = parents.get(group.getName());
+				for (String parentName : parentNames)
+				{
+					PermissionGroup parent = groups.get(parentName.toLowerCase());
+					if (parent == null)
+						continue;
+					
+					group.addParent(parent);
+				}
+			}
+			
+			return groups;
+		}
+		catch (SQLException e)
+		{
+			logger.log(Level.SEVERE, "Failed to load groups", e);
+			return Collections.emptyMap();
+		}
+	}
+	
+	private List<String> loadPermissions(String objectId) throws SQLException
+	{
+		List<String> permissions = Lists.newArrayList();
+		
+		loadObject.setString(1, objectId);
+		ResultSet rs = loadObject.executeQuery();
+		try
+		{
+			while(rs.next())
+				permissions.add(rs.getString(1));
+		}
+		finally
+		{
+			rs.close();
+		}
+		
+		return permissions;
+	}
+	
+	private List<String> loadParents(String objectId) throws SQLException
+	{
+		List<String> parents = Lists.newArrayList();
+		
+		loadParents.setString(1, objectId);
+		ResultSet rs = loadParents.executeQuery();
+		try
+		{
+			while(rs.next())
+				parents.add(rs.getString(1));
+		}
+		finally
+		{
+			rs.close();
+		}
+		
+		return parents;
 	}
 	
 	@Override
@@ -148,7 +234,7 @@ public class MySQLBackend implements IBackend
 		{
 			loadGroups.close();
 			loadObject.close();
-			loadChildren.close();
+			loadParents.close();
 			connection.close();
 		}
 		catch (SQLException e)
