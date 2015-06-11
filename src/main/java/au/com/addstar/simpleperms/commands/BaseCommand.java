@@ -49,6 +49,12 @@ public class BaseCommand extends Command
 			return;
 		}
 		
+		if (args[1].equalsIgnoreCase("help"))
+		{
+			executor.onHelp(sender);
+			return;
+		}
+		
 		try
 		{
 			PermissionBase object = executor.getObject(args[1]);

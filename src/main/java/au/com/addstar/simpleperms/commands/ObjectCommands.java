@@ -31,6 +31,7 @@ public abstract class ObjectCommands
 	private void displayUsage(CommandSender sender, PermissionBase object, String... parts)
 	{
 		StringBuilder builder = new StringBuilder();
+		builder.append("/!perm ");
 		builder.append(getName());
 		builder.append(' ');
 		builder.append(object.getName());
@@ -72,6 +73,9 @@ public abstract class ObjectCommands
 		case "group":
 		case "parent":
 			onParent(sender, object, args[0].toLowerCase(), Arrays.copyOfRange(args, 1, args.length));
+			break;
+		case "help":
+			onHelp(sender);
 			break;
 		default:
 			sender.sendMessage(ChatColor.RED + "Unknown sub command " + args[0]);
@@ -220,6 +224,33 @@ public abstract class ObjectCommands
 		object.rebuildPermissions();
 		
 		sender.sendMessage(ChatColor.GREEN + args[0] + " was removed from " + object.getName());
+	}
+	
+	public void onHelp(CommandSender sender)
+	{
+		String prefix = "/!perm " + getName() + ChatColor.RED + " <" + getName() + "> " + ChatColor.GOLD;
+		
+		sender.sendMessage(ChatColor.WHITE + "All sub commands for " + getName());
+		sender.sendMessage(ChatColor.GOLD + prefix);
+		sender.sendMessage(ChatColor.AQUA + "   Lists all parents and permissions defined on this object");
+		sender.sendMessage(ChatColor.GOLD + prefix + "add " + ChatColor.RED + "<permission>");
+		sender.sendMessage(ChatColor.AQUA + "   Adds a permission to this object directly");
+		sender.sendMessage(ChatColor.GOLD + prefix + "remove " + ChatColor.RED + "<permission>");
+		sender.sendMessage(ChatColor.AQUA + "   Removes a permission from this object directly");
+		sender.sendMessage(ChatColor.GOLD + prefix + "check " + ChatColor.RED + "<permission>");
+		sender.sendMessage(ChatColor.AQUA + "   Checks if that permission is set for this object");
+		sender.sendMessage(ChatColor.GOLD + prefix + "list");
+		sender.sendMessage(ChatColor.AQUA + "   Lists all permissions that are set directly on this object");
+		sender.sendMessage(ChatColor.GOLD + prefix + "delete");
+		sender.sendMessage(ChatColor.AQUA + "   Deletes this object. If this is a user they must be offline");
+		sender.sendMessage(ChatColor.GOLD + prefix + "parent add " + ChatColor.RED + "<group>");
+		sender.sendMessage(ChatColor.AQUA + "   Adds the group to this object if possible");
+		sender.sendMessage(ChatColor.GOLD + prefix + "parent remove " + ChatColor.RED + "<group>");
+		sender.sendMessage(ChatColor.AQUA + "   Removes the group from this user");
+		sender.sendMessage(ChatColor.GOLD + prefix + "parent list");
+		sender.sendMessage(ChatColor.AQUA + "   Lists all parents of this object");
+		sender.sendMessage(ChatColor.GOLD + prefix + "parent set " + ChatColor.RED + "<group> <group2>...");
+		sender.sendMessage(ChatColor.AQUA + "   Sets the groups this object will inherit.");
 	}
 	
 	// ====================================
