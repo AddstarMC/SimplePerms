@@ -115,7 +115,15 @@ public abstract class ObjectCommands
 			return;
 		}
 		
-		throw new UnsupportedOperationException("Not yet implemented");
+		try
+		{
+			manager.remove(object);
+			sender.sendMessage(ChatColor.GOLD + object.getName() + " has been removed");
+		}
+		catch (IllegalArgumentException e)
+		{
+			sender.sendMessage(ChatColor.RED + "Cannot remove this player as they are still online");
+		}
 	}
 	
 	private void onList(CommandSender sender, PermissionBase object, String[] args)

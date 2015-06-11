@@ -7,8 +7,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import net.md_5.bungee.api.ProxyServer;
 import au.com.addstar.simpleperms.backend.IBackend;
 import au.com.addstar.simpleperms.backend.MySQLBackend;
+import au.com.addstar.simpleperms.permissions.PermissionBase;
 import au.com.addstar.simpleperms.permissions.PermissionGroup;
 import au.com.addstar.simpleperms.permissions.PermissionUser;
 
@@ -107,6 +109,30 @@ public class PermissionManager
 	public Collection<PermissionGroup> getGroups()
 	{
 		return Collections.unmodifiableCollection(groups.values());
+	}
+	
+	public void remove(PermissionBase object)
+	{
+		if (object instanceof PermissionUser)
+		{
+			if (ProxyServer.getInstance().getPlayer(((PermissionUser)object).getId()) != null)
+				throw new IllegalArgumentException("Cannot remove a user while they are online");
+		}
+		
+		backend.removeObject(object);
+		
+		if (object instanceof PermissionGroup)
+		{
+			// Remove any parent references
+			for (PermissionGroup group : groups.values())
+				group.removeParent((PermissionGroup)object);
+			for (PermissionUser user : cachedUsers.asMap().values())
+				user.removeParent((PermissionGroup)object);
+			
+			groups.remove(object.getName().toLowerCase());
+		}
+		else
+			cachedUsers.invalidate(((PermissionUser)object).getId());
 	}
 	
 	public PermsPlugin getPlugin()

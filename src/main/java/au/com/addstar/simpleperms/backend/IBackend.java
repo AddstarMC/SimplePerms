@@ -18,6 +18,8 @@ public interface IBackend
 	
 	public void addObject(PermissionBase object);
 	
+	public void removeObject(PermissionBase object);
+	
 	public List<String> loadParents(String groupName);
 	
 	public List<String> loadParents(UUID userId);

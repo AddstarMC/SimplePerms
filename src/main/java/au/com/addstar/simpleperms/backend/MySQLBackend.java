@@ -31,6 +31,9 @@ public class MySQLBackend implements IBackend
 	private PreparedStatement loadGroups;
 	private PreparedStatement loadObject;
 	private PreparedStatement addObject;
+	private PreparedStatement removeObject;
+	private PreparedStatement removeObjectPermissions;
+	private PreparedStatement removeObjectHierarchy;
 	private PreparedStatement loadParents;
 	private PreparedStatement addPerm;
 	private PreparedStatement removePerm;
@@ -122,6 +125,10 @@ public class MySQLBackend implements IBackend
 			loadObject = connection.prepareStatement("SELECT `permission` FROM `permissions` WHERE `objectid`=?;");
 			addObject = connection.prepareStatement("INSERT INTO `objects` VALUES (?,?);");
 			loadParents = connection.prepareStatement("SELECT `parentid` FROM `hierarchy` WHERE `childid`=?;");
+			
+			removeObject = connection.prepareStatement("DELETE FROM `objects` WHERE `objectid`=?;");
+			removeObjectPermissions = connection.prepareStatement("DELETE FROM `permissions` WHERE `objectid`=?;");
+			removeObjectHierarchy = connection.prepareStatement("DELETE FROM `hierarchy` WHERE `childid`=? OR `parentid`=?;");
 			
 			addPerm = connection.prepareStatement("INSERT INTO `permissions` VALUES (DEFAULT,?,?);");
 			removePerm = connection.prepareStatement("DELETE FROM `permissions` WHERE `objectid`=? AND `permission`=?;");
@@ -353,6 +360,25 @@ public class MySQLBackend implements IBackend
 	}
 	
 	@Override
+	public void removeObject( PermissionBase object )
+	{
+		try
+		{
+			removeObject.setString(1, object.getName());
+			removeObjectPermissions.setString(1, object.getName());
+			removeObjectHierarchy.setString(1, object.getName());
+			removeObjectHierarchy.setString(2, object.getName());
+			removeObject.executeUpdate();
+			removeObjectPermissions.executeUpdate();
+			removeObjectHierarchy.executeUpdate();
+		}
+		catch (SQLException e)
+		{
+			logger.log(Level.SEVERE, "Failed to remove object " + object.getName(), e);
+		}
+	}
+	
+	@Override
 	public void shutdown()
 	{
 		try
@@ -360,6 +386,9 @@ public class MySQLBackend implements IBackend
 			loadGroups.close();
 			loadObject.close();
 			addObject.close();
+			removeObject.close();
+			removeObjectPermissions.close();
+			removeObjectHierarchy.close();
 			loadParents.close();
 			addPerm.close();
 			removePerm.close();
