@@ -40,6 +40,7 @@ public class MySQLBackend implements IBackend
 	private PreparedStatement removePerm;
 	private PreparedStatement addParent;
 	private PreparedStatement removeParent;
+	private PreparedStatement findUser;
 	
 	public MySQLBackend(Configuration config, Logger logger)
 	{
@@ -138,6 +139,8 @@ public class MySQLBackend implements IBackend
 			
 			addParent = connection.prepareStatement("INSERT INTO `hierarchy` VALUES (DEFAULT,?,?);");
 			removeParent = connection.prepareStatement("DELETE FROM `hierarchy` WHERE `childid`=? AND `parentid`=?;");
+			
+			findUser = connection.prepareStatement("SELECT `objectid` FROM `objects` WHERE `name` LIKE ? AND `type`=0;");
 			
 			return true;
 		}
@@ -404,6 +407,28 @@ public class MySQLBackend implements IBackend
 	}
 	
 	@Override
+	public UUID findUser( String name )
+	{
+		try
+		{
+			findUser.setString(1, name);
+			ResultSet rs = findUser.executeQuery();
+			
+			UUID id = null;
+			if (rs.next())
+				id = UUID.fromString(rs.getString(1));
+			
+			rs.close();
+			return id;
+		}
+		catch (SQLException e)
+		{
+			logger.log(Level.SEVERE, "Failed to find name " + name, e);
+			return null;
+		}
+	}
+	
+	@Override
 	public void shutdown()
 	{
 		try
@@ -418,6 +443,7 @@ public class MySQLBackend implements IBackend
 			loadParents.close();
 			addPerm.close();
 			removePerm.close();
+			findUser.close();
 			
 			connection.close();
 		}

@@ -100,6 +100,11 @@ public class PermissionManager
 		return user;
 	}
 	
+	public UUID findUserByName(String name)
+	{
+		return backend.findUser(name);
+	}
+	
 	public PermissionGroup getGroup(String name)
 	{
 		return groups.get(name.toLowerCase());

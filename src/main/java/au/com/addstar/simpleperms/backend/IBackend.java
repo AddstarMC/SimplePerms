@@ -16,6 +16,8 @@ public interface IBackend
 	
 	public PermissionUser loadUser(UUID userId, String name);
 	
+	public UUID findUser(String name);
+	
 	public void addObject(PermissionBase object);
 	
 	public void removeObject(PermissionBase object);

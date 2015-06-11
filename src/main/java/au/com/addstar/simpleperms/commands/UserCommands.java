@@ -36,7 +36,11 @@ public class UserCommands extends ObjectCommands
 			if (player != null)
 				id = player.getUniqueId();
 			else
-				throw new IllegalArgumentException("Unknown player " + value + " (NOTE. Offline players are not supported by name)");
+			{
+				id = manager.findUserByName(value);
+				if (id == null)
+					throw new IllegalArgumentException("Unknown user " + value);
+			}
 		}
 		
 		return manager.getUser(id);

@@ -34,7 +34,7 @@ public abstract class ObjectCommands
 		builder.append("/!perm ");
 		builder.append(getName());
 		builder.append(' ');
-		builder.append(object.getName());
+		builder.append(object.getDisplayName());
 		
 		for (String part : parts)
 		{
@@ -85,13 +85,13 @@ public abstract class ObjectCommands
 	
 	private void onFullList(CommandSender sender, PermissionBase object)
 	{
-		sender.sendMessage(String.format("Parents for %s:", object.getName()));
+		sender.sendMessage(String.format("Parents for %s:", object.getDisplayName()));
 		
 		int index = 1;
 		for (PermissionGroup parent : object.parents())
 			sender.sendMessage(String.format("%d) %s", index++, parent.getName()));
 		
-		sender.sendMessage(String.format("Permissions defined on %s:", object.getName()));
+		sender.sendMessage(String.format("Permissions defined on %s:", object.getDisplayName()));
 		
 		index = 1;
 		for (String permission : object.getRawPermissions())
@@ -116,13 +116,13 @@ public abstract class ObjectCommands
 		
 		
 		if (value == null)
-			sender.sendMessage(String.format("%s doesnt have permission \"%s\" defined (inherited)", object.getName(), args[0]));
+			sender.sendMessage(String.format("%s doesnt have permission \"%s\" defined (inherited)", object.getDisplayName(), args[0]));
 		else
 		{
 			if (local)
-				sender.sendMessage(String.format("%s has \"%s\" = %s (self)", object.getName(), args[0], value.toString().toUpperCase()));
+				sender.sendMessage(String.format("%s has \"%s\" = %s (self)", object.getDisplayName(), args[0], value.toString().toUpperCase()));
 			else
-				sender.sendMessage(String.format("%s has \"%s\" = %s (inherited)", object.getName(), args[0], value.toString().toUpperCase()));
+				sender.sendMessage(String.format("%s has \"%s\" = %s (inherited)", object.getDisplayName(), args[0], value.toString().toUpperCase()));
 		}
 	}
 	
@@ -137,7 +137,7 @@ public abstract class ObjectCommands
 		try
 		{
 			manager.remove(object);
-			sender.sendMessage(ChatColor.GOLD + object.getName() + " has been removed");
+			sender.sendMessage(ChatColor.GOLD + object.getDisplayName() + " has been removed");
 		}
 		catch (IllegalArgumentException e)
 		{
@@ -187,7 +187,7 @@ public abstract class ObjectCommands
 			sender.sendMessage(ChatColor.RED + "Page number too high");
 		else
 		{
-			sender.sendMessage(String.format("Permissions defined on %s:", object.getName()));
+			sender.sendMessage(String.format("Permissions defined on %s:", object.getDisplayName()));
 			
 			for (int i = start; i < perms.size() && i < start + perPage; ++i)
 				sender.sendMessage(String.format("%d) %s", i+1, perms.get(i)));
@@ -209,7 +209,7 @@ public abstract class ObjectCommands
 		object.addPermission(args[0]);
 		object.rebuildPermissions();
 		
-		sender.sendMessage(ChatColor.GREEN + args[0] + " was added to " + object.getName());
+		sender.sendMessage(ChatColor.GREEN + args[0] + " was added to " + object.getDisplayName());
 	}
 	
 	private void onRemove(CommandSender sender, PermissionBase object, String[] args)
@@ -223,7 +223,7 @@ public abstract class ObjectCommands
 		object.removePermission(args[0]);
 		object.rebuildPermissions();
 		
-		sender.sendMessage(ChatColor.GREEN + args[0] + " was removed from " + object.getName());
+		sender.sendMessage(ChatColor.GREEN + args[0] + " was removed from " + object.getDisplayName());
 	}
 	
 	public void onHelp(CommandSender sender)
@@ -303,7 +303,7 @@ public abstract class ObjectCommands
 		// Check that it doesnt already have this parent
 		if (object.hasParent(toAdd))
 		{
-			sender.sendMessage(ChatColor.RED + object.getName() + " already inherits from " + toAdd.getName());
+			sender.sendMessage(ChatColor.RED + object.getDisplayName() + " already inherits from " + toAdd.getName());
 			return;
 		}
 		
@@ -315,7 +315,7 @@ public abstract class ObjectCommands
 		}
 		
 		object.addParent(toAdd);
-		sender.sendMessage(ChatColor.GREEN + object.getName() + " now inherits from " + toAdd.getName());
+		sender.sendMessage(ChatColor.GREEN + object.getDisplayName() + " now inherits from " + toAdd.getName());
 	}
 	
 	private void onParentList(CommandSender sender, PermissionBase object, String label, String[] args)
@@ -326,7 +326,7 @@ public abstract class ObjectCommands
 			return;
 		}
 
-		sender.sendMessage(String.format("Parents for %s:", object.getName()));
+		sender.sendMessage(String.format("Parents for %s:", object.getDisplayName()));
 		
 		int index = 1;
 		for (PermissionGroup parent : object.parents())
@@ -355,7 +355,7 @@ public abstract class ObjectCommands
 		}
 		
 		object.removeParent(toRemove);
-		sender.sendMessage(ChatColor.GOLD + toRemove.getName() + " is not longer a parent of " + object.getName());
+		sender.sendMessage(ChatColor.GOLD + toRemove.getDisplayName() + " is not longer a parent of " + object.getDisplayName());
 	}
 	
 	private void onParentSet(CommandSender sender, PermissionBase object, String label, String[] args)
@@ -380,6 +380,6 @@ public abstract class ObjectCommands
 		}
 		
 		object.setParents(groups);
-		sender.sendMessage(ChatColor.GOLD + object.getName() + " now inherits from " + groups);
+		sender.sendMessage(ChatColor.GOLD + object.getDisplayName() + " now inherits from " + groups);
 	}
 }
