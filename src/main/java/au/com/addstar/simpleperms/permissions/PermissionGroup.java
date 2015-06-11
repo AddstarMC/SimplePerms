@@ -19,4 +19,10 @@ public class PermissionGroup extends PermissionBase
 	{
 		return name;
 	}
+	
+	@Override
+	public String getDisplayName()
+	{
+		return name;
+	}
 }

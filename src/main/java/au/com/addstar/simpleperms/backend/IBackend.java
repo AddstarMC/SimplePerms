@@ -14,7 +14,7 @@ public interface IBackend
 	
 	public PermissionGroup loadGroup(String groupName);
 	
-	public PermissionUser loadUser(UUID userId);
+	public PermissionUser loadUser(UUID userId, String name);
 	
 	public void addObject(PermissionBase object);
 	

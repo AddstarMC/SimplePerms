@@ -31,6 +31,7 @@ public class MySQLBackend implements IBackend
 	private PreparedStatement loadGroups;
 	private PreparedStatement loadObject;
 	private PreparedStatement addObject;
+	private PreparedStatement loadUserName;
 	private PreparedStatement removeObject;
 	private PreparedStatement removeObjectPermissions;
 	private PreparedStatement removeObjectHierarchy;
@@ -80,7 +81,7 @@ public class MySQLBackend implements IBackend
 			catch (SQLException e)
 			{
 				// Create it
-				statement.executeUpdate("CREATE TABLE `objects` (`objectid` VARCHAR(36) NOT NULL PRIMARY KEY, `type` TINYINT(1) NOT NULL);");
+				statement.executeUpdate("CREATE TABLE `objects` (`objectid` VARCHAR(36) NOT NULL PRIMARY KEY, `type` TINYINT(1) NOT NULL, `name` VARCHAR(30));");
 			}
 			
 			// Check permissions table
@@ -123,8 +124,10 @@ public class MySQLBackend implements IBackend
 		{
 			loadGroups = connection.prepareStatement("SELECT `objectid` FROM `objects` WHERE `type`=1;");
 			loadObject = connection.prepareStatement("SELECT `permission` FROM `permissions` WHERE `objectid`=?;");
-			addObject = connection.prepareStatement("INSERT INTO `objects` VALUES (?,?);");
+			addObject = connection.prepareStatement("REPLACE INTO `objects` VALUES (?,?,?);");
 			loadParents = connection.prepareStatement("SELECT `parentid` FROM `hierarchy` WHERE `childid`=?;");
+			
+			loadUserName = connection.prepareStatement("SELECT `name` FROM `objects` WHERE `objectid`=?;");
 			
 			removeObject = connection.prepareStatement("DELETE FROM `objects` WHERE `objectid`=?;");
 			removeObjectPermissions = connection.prepareStatement("DELETE FROM `permissions` WHERE `objectid`=?;");
@@ -328,16 +331,32 @@ public class MySQLBackend implements IBackend
 	}
 	
 	@Override
-	public PermissionUser loadUser(UUID userId)
+	public PermissionUser loadUser(UUID userId, String name)
 	{
 		try
 		{
-			return new PermissionUser(userId, loadPermissions(userId.toString()), this);
+			if (name == null)
+			{
+				loadUserName.setString(1, userId.toString());
+				ResultSet rs = loadUserName.executeQuery();
+				if (rs.next())
+					name = rs.getString(1);
+				rs.close();
+			}
+			else
+			{
+				addObject.setString(1, userId.toString());
+				addObject.setInt(2, 0);
+				addObject.setString(3, name);
+				addObject.executeUpdate();
+			}
+			
+			return new PermissionUser(userId, loadPermissions(userId.toString()), name, this);
 		}
 		catch (SQLException e)
 		{
 			logger.log(Level.SEVERE, "Failed to load user " + userId, e);
-			return new PermissionUser(userId, Lists.<String>newArrayList(), this);
+			return new PermissionUser(userId, Lists.<String>newArrayList(), name, this);
 		}
 	}
 	
@@ -348,9 +367,15 @@ public class MySQLBackend implements IBackend
 		{
 			addObject.setString(1, object.getName());
 			if (object instanceof PermissionGroup)
+			{
 				addObject.setInt(2, 1);
+				addObject.setString(3, null);
+			}
 			else
+			{
 				addObject.setInt(2, 0);
+				addObject.setString(3, ((PermissionUser)object).getDisplayName());
+			}
 			addObject.executeUpdate();
 		}
 		catch (SQLException e)
@@ -386,6 +411,7 @@ public class MySQLBackend implements IBackend
 			loadGroups.close();
 			loadObject.close();
 			addObject.close();
+			loadUserName.close();
 			removeObject.close();
 			removeObjectPermissions.close();
 			removeObjectHierarchy.close();

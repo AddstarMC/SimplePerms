@@ -231,6 +231,7 @@ public abstract class PermissionBase
 	}
 	
 	public abstract String getName();
+	public abstract String getDisplayName();
 	
 	@Override
 	public String toString()

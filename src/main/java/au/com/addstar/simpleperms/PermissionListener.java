@@ -29,7 +29,7 @@ public class PermissionListener implements Listener
 			@Override
 			public void run()
 			{
-				manager.getUser(event.getConnection().getUniqueId());
+				manager.loadUser(event.getConnection());
 				event.completeIntent(manager.getPlugin());
 			}
 		});

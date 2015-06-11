@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.connection.PendingConnection;
 import au.com.addstar.simpleperms.backend.IBackend;
 import au.com.addstar.simpleperms.backend.MySQLBackend;
 import au.com.addstar.simpleperms.permissions.PermissionBase;
@@ -57,14 +58,14 @@ public class PermissionManager
 		plugin.getLogger().info("Loaded " + groups.size() + " permission groups");
 	}
 	
-	public PermissionUser getUser(UUID id)
+	public void loadUser(PendingConnection connection)
 	{
-		PermissionUser user = cachedUsers.getIfPresent(id);
-		if (user != null)
-			return user;
-		
-		// Load it
-		user = backend.loadUser(id);
+		loadUser(connection.getUniqueId(), connection.getName());
+	}
+	
+	private PermissionUser loadUser(UUID id, String name)
+	{
+		PermissionUser user = backend.loadUser(id, name);
 		List<String> parents = backend.loadParents(id);
 		List<PermissionGroup> parentGroups = Lists.newArrayListWithCapacity(parents.size());
 		
@@ -79,6 +80,17 @@ public class PermissionManager
 		
 		user.setParentsInternal(parentGroups);
 		user.rebuildPermissions();
+		
+		return user;
+	}
+	
+	public PermissionUser getUser(UUID id)
+	{
+		PermissionUser user = cachedUsers.getIfPresent(id);
+		if (user != null)
+			return user;
+		
+		user = loadUser(id, null);
 		
 		// Cache it
 		cachedUsers.put(id, user);

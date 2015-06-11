@@ -8,11 +8,14 @@ import au.com.addstar.simpleperms.backend.IBackend;
 public class PermissionUser extends PermissionBase
 {
 	private UUID id;
+	private String name;
 	
-	public PermissionUser(UUID id, List<String> rawPermissions, IBackend backend)
+	public PermissionUser(UUID id, List<String> rawPermissions, String name, IBackend backend)
 	{
 		super(rawPermissions, backend);
+		
 		this.id = id;
+		this.name = name;
 	}
 	
 	public UUID getId()
@@ -24,5 +27,11 @@ public class PermissionUser extends PermissionBase
 	public String getName()
 	{
 		return id.toString();
+	}
+	
+	@Override
+	public String getDisplayName()
+	{
+		return name;
 	}
 }
