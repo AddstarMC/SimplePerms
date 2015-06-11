@@ -33,6 +33,8 @@ public class MySQLBackend implements IBackend
 	private PreparedStatement loadParents;
 	private PreparedStatement addPerm;
 	private PreparedStatement removePerm;
+	private PreparedStatement addParent;
+	private PreparedStatement removeParent;
 	
 	public MySQLBackend(Configuration config, Logger logger)
 	{
@@ -122,6 +124,9 @@ public class MySQLBackend implements IBackend
 			addPerm = connection.prepareStatement("INSERT INTO `permissions` VALUES (DEFAULT,?,?);");
 			removePerm = connection.prepareStatement("DELETE FROM `permissions` WHERE `objectid`=? AND `permission`=?;");
 			
+			addParent = connection.prepareStatement("INSERT INTO `hierarchy` VALUES (DEFAULT,?,?);");
+			removeParent = connection.prepareStatement("DELETE FROM `hierarchy` WHERE `childid`=? AND `parentid`=?;");
+			
 			return true;
 		}
 		catch (SQLException e)
@@ -159,14 +164,17 @@ public class MySQLBackend implements IBackend
 			for (PermissionGroup group : groups.values())
 			{
 				List<String> parentNames = parents.get(group.getName());
+				List<PermissionGroup> parentGroups = Lists.newArrayListWithCapacity(parentNames.size());
 				for (String parentName : parentNames)
 				{
 					PermissionGroup parent = groups.get(parentName.toLowerCase());
 					if (parent == null)
 						continue;
 					
-					group.addParent(parent);
+					parentGroups.add(parent);
 				}
+				
+				group.setParentsInternal(parentGroups);
 			}
 			
 			return groups;
@@ -224,6 +232,36 @@ public class MySQLBackend implements IBackend
 		catch (SQLException e)
 		{
 			logger.log(Level.SEVERE, "Failed to remove permission '" + permission + "' from " + object.getName(), e);
+		}
+	}
+	
+	@Override
+	public void addParent( PermissionBase object, PermissionGroup parent )
+	{
+		try
+		{
+			addParent.setString(1, object.getName());
+			addParent.setString(2, parent.getName());
+			addParent.executeUpdate();
+		}
+		catch (SQLException e)
+		{
+			logger.log(Level.SEVERE, "Failed to add parent " + parent.getName() + " to " + object.getName(), e);
+		}
+	}
+	
+	@Override
+	public void removeParent( PermissionBase object, PermissionGroup parent )
+	{
+		try
+		{
+			removeParent.setString(1, object.getName());
+			removeParent.setString(2, parent.getName());
+			removeParent.executeUpdate();
+		}
+		catch (SQLException e)
+		{
+			logger.log(Level.SEVERE, "Failed to remove parent " + parent.getName() + " from " + object.getName(), e);
 		}
 	}
 	

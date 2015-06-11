@@ -24,6 +24,10 @@ public interface IBackend
 	
 	public void removePermission(PermissionBase object, String permission);
 	
+	public void addParent(PermissionBase object, PermissionGroup parent);
+	
+	public void removeParent(PermissionBase object, PermissionGroup parent);
+	
 	public void shutdown();
 	
 	public boolean isValid();

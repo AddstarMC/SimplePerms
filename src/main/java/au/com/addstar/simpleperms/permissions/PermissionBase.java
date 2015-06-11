@@ -3,6 +3,7 @@ package au.com.addstar.simpleperms.permissions;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import au.com.addstar.simpleperms.backend.IBackend;
 
@@ -175,9 +176,53 @@ public abstract class PermissionBase
 		return Collections.unmodifiableList(parents);
 	}
 	
+	public boolean hasParent(PermissionGroup parent)
+	{
+		Stack<PermissionBase> toSearch = new Stack<PermissionBase>();
+		
+		toSearch.add(this);
+		
+		while(!toSearch.isEmpty())
+		{
+			PermissionBase group = toSearch.pop();
+			
+			if (group.equals(parent))
+				return true;
+			
+			toSearch.addAll(group.parents);
+		}
+		
+		return false;
+	}
+	
+	public void setParentsInternal(List<PermissionGroup> groups)
+	{
+		parents.clear();
+		parents.addAll(groups);
+	}
+	
+	public void setParents(List<PermissionGroup> groups)
+	{
+		for (PermissionGroup group : parents)
+			backend.removeParent(this, group);
+		
+		parents.clear();
+		parents.addAll(groups);
+		
+		for (PermissionGroup group : groups)
+			backend.addParent(this, group);
+	}
+	
 	public void addParent(PermissionGroup parent)
 	{
-		parents.add(parent);
+		if (parents.add(parent))
+			backend.addParent(this, parent);
+	}
+	
+	public void removeParent(PermissionGroup parent)
+	{
+		if (parents.remove(parent))
+			backend.removeParent(this, parent);
 	}
 	
 	public List<String> getRawPermissions()
@@ -186,4 +231,10 @@ public abstract class PermissionBase
 	}
 	
 	public abstract String getName();
+	
+	@Override
+	public String toString()
+	{
+		return getName();
+	}
 }

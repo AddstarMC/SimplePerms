@@ -3,6 +3,8 @@ package au.com.addstar.simpleperms.commands;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.common.collect.Lists;
+
 import au.com.addstar.simpleperms.PermissionManager;
 import au.com.addstar.simpleperms.permissions.PermissionBase;
 import au.com.addstar.simpleperms.permissions.PermissionGroup;
@@ -233,7 +235,29 @@ public abstract class ObjectCommands
 			return;
 		}
 		
-		throw new UnsupportedOperationException("Not yet implemented");
+		PermissionGroup toAdd = manager.getGroup(args[0]);
+		if (toAdd == null)
+		{
+			sender.sendMessage(ChatColor.RED + "Unknown group " + args[0]);
+			return;
+		}
+		
+		// Check that it doesnt already have this parent
+		if (object.hasParent(toAdd))
+		{
+			sender.sendMessage(ChatColor.RED + object.getName() + " already inherits from " + toAdd.getName());
+			return;
+		}
+		
+		// Make sure we wont add a cycle
+		if (object instanceof PermissionGroup && toAdd.hasParent((PermissionGroup)object))
+		{
+			sender.sendMessage(ChatColor.RED + "Adding that parent would create a cycle.");
+			return;
+		}
+		
+		object.addParent(toAdd);
+		sender.sendMessage(ChatColor.GREEN + object.getName() + " now inherits from " + toAdd.getName());
 	}
 	
 	private void onParentList(CommandSender sender, PermissionBase object, String label, String[] args)
@@ -257,17 +281,45 @@ public abstract class ObjectCommands
 			return;
 		}
 		
-		throw new UnsupportedOperationException("Not yet implemented");
+		if (args.length != 1)
+		{
+			displayUsage(sender, object, label, "add <parent>");
+			return;
+		}
+		
+		PermissionGroup toRemove = manager.getGroup(args[0]);
+		if (toRemove == null)
+		{
+			sender.sendMessage(ChatColor.RED + "Unknown group " + args[0]);
+			return;
+		}
+		
+		object.removeParent(toRemove);
+		sender.sendMessage(ChatColor.GOLD + toRemove.getName() + " is not longer a parent of " + object.getName());
 	}
 	
 	private void onParentSet(CommandSender sender, PermissionBase object, String label, String[] args)
 	{
-		if (args.length != 1)
+		if (args.length == 0)
 		{
-			displayUsage(sender, object, label, "set <parent>");
+			displayUsage(sender, object, label, "set <parent> [<parent>...]");
 			return;
 		}
 		
-		throw new UnsupportedOperationException("Not yet implemented");
+		// Parse groups
+		List<PermissionGroup> groups = Lists.newArrayList();
+		for (String groupName : args)
+		{
+			PermissionGroup group = manager.getGroup(groupName);
+			if (group == null)
+			{
+				sender.sendMessage(ChatColor.RED + "Unknown group " + groupName);
+				return;
+			}
+			groups.add(group);
+		}
+		
+		object.setParents(groups);
+		sender.sendMessage(ChatColor.GOLD + object.getName() + " now inherits from " + groups);
 	}
 }

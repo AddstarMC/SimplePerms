@@ -12,6 +12,7 @@ import au.com.addstar.simpleperms.permissions.PermissionUser;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class PermissionManager
@@ -61,15 +62,18 @@ public class PermissionManager
 		// Load it
 		user = backend.loadUser(id);
 		List<String> parents = backend.loadParents(id);
+		List<PermissionGroup> parentGroups = Lists.newArrayListWithCapacity(parents.size());
+		
 		for (String parentName : parents)
 		{
 			PermissionGroup parent = groups.get(parentName.toLowerCase());
 			if (parent == null)
 				continue;
 			
-			user.addParent(parent);
+			parentGroups.add(parent);
 		}
 		
+		user.setParentsInternal(parentGroups);
 		user.rebuildPermissions();
 		
 		// Cache it
