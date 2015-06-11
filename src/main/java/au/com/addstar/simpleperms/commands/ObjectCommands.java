@@ -48,7 +48,7 @@ public abstract class ObjectCommands
 	{
 		if (args.length == 0)
 		{
-			displayUsage(sender, object, "<command> [<params>...]");
+			onFullList(sender, object);
 			return;
 		}
 		
@@ -77,6 +77,21 @@ public abstract class ObjectCommands
 			sender.sendMessage(ChatColor.RED + "Unknown sub command " + args[0]);
 			break;
 		}
+	}
+	
+	private void onFullList(CommandSender sender, PermissionBase object)
+	{
+		sender.sendMessage(String.format("Parents for %s:", object.getName()));
+		
+		int index = 1;
+		for (PermissionGroup parent : object.parents())
+			sender.sendMessage(String.format("%d) %s", index++, parent.getName()));
+		
+		sender.sendMessage(String.format("Permissions defined on %s:", object.getName()));
+		
+		index = 1;
+		for (String permission : object.getRawPermissions())
+			sender.sendMessage(String.format("%d) %s", index++, permission));
 	}
 	
 	private void onCheck(CommandSender sender, PermissionBase object, String[] args)
@@ -168,6 +183,8 @@ public abstract class ObjectCommands
 			sender.sendMessage(ChatColor.RED + "Page number too high");
 		else
 		{
+			sender.sendMessage(String.format("Permissions defined on %s:", object.getName()));
+			
 			for (int i = start; i < perms.size() && i < start + perPage; ++i)
 				sender.sendMessage(String.format("%d) %s", i+1, perms.get(i)));
 			
@@ -278,6 +295,8 @@ public abstract class ObjectCommands
 			return;
 		}
 
+		sender.sendMessage(String.format("Parents for %s:", object.getName()));
+		
 		int index = 1;
 		for (PermissionGroup parent : object.parents())
 			sender.sendMessage(String.format("%d) %s", index++, parent.getName()));
