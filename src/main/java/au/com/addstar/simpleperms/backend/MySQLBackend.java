@@ -30,6 +30,7 @@ public class MySQLBackend implements IBackend
 	
 	private PreparedStatement loadGroups;
 	private PreparedStatement loadObject;
+	private PreparedStatement addObject;
 	private PreparedStatement loadParents;
 	private PreparedStatement addPerm;
 	private PreparedStatement removePerm;
@@ -119,6 +120,7 @@ public class MySQLBackend implements IBackend
 		{
 			loadGroups = connection.prepareStatement("SELECT `objectid` FROM `objects` WHERE `type`=1;");
 			loadObject = connection.prepareStatement("SELECT `permission` FROM `permissions` WHERE `objectid`=?;");
+			addObject = connection.prepareStatement("INSERT INTO `objects` VALUES (?,?);");
 			loadParents = connection.prepareStatement("SELECT `parentid` FROM `hierarchy` WHERE `childid`=?;");
 			
 			addPerm = connection.prepareStatement("INSERT INTO `permissions` VALUES (DEFAULT,?,?);");
@@ -328,7 +330,25 @@ public class MySQLBackend implements IBackend
 		catch (SQLException e)
 		{
 			logger.log(Level.SEVERE, "Failed to load user " + userId, e);
-			return new PermissionUser(userId, Collections.<String>emptyList(), this);
+			return new PermissionUser(userId, Lists.<String>newArrayList(), this);
+		}
+	}
+	
+	@Override
+	public void addObject( PermissionBase object )
+	{
+		try
+		{
+			addObject.setString(1, object.getName());
+			if (object instanceof PermissionGroup)
+				addObject.setInt(2, 1);
+			else
+				addObject.setInt(2, 0);
+			addObject.executeUpdate();
+		}
+		catch (SQLException e)
+		{
+			logger.log(Level.SEVERE, "Failed to add object " + object.getName(), e);
 		}
 	}
 	
@@ -339,6 +359,7 @@ public class MySQLBackend implements IBackend
 		{
 			loadGroups.close();
 			loadObject.close();
+			addObject.close();
 			loadParents.close();
 			addPerm.close();
 			removePerm.close();

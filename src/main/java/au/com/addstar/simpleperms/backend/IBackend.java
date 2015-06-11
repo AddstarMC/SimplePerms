@@ -16,6 +16,8 @@ public interface IBackend
 	
 	public PermissionUser loadUser(UUID userId);
 	
+	public void addObject(PermissionBase object);
+	
 	public List<String> loadParents(String groupName);
 	
 	public List<String> loadParents(UUID userId);

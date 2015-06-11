@@ -19,6 +19,6 @@ public class GroupCommands extends ObjectCommands
 	@Override
 	public PermissionBase getObject( String value ) throws IllegalArgumentException
 	{
-		return manager.getGroup(value);
+		return manager.getOrCreateGroup(value);
 	}
 }

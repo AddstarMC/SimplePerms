@@ -89,6 +89,19 @@ public class PermissionManager
 		return groups.get(name.toLowerCase());
 	}
 	
+	public PermissionGroup getOrCreateGroup(String name)
+	{
+		PermissionGroup group = groups.get(name.toLowerCase());
+		if (group != null)
+			return group;
+		
+		group = new PermissionGroup(name, Lists.<String>newArrayList(), backend);
+		groups.put(name.toLowerCase(), group);
+		
+		backend.addObject(group);
+		return group;
+	}
+	
 	public PermsPlugin getPlugin()
 	{
 		return plugin;
