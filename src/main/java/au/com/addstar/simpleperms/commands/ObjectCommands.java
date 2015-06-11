@@ -26,6 +26,8 @@ public abstract class ObjectCommands
 	
 	public abstract PermissionBase getObject(String value) throws IllegalArgumentException;
 	
+	public abstract void listObjects(CommandSender sender);
+	
 	private void displayUsage(CommandSender sender, PermissionBase object, String... parts)
 	{
 		StringBuilder builder = new StringBuilder();

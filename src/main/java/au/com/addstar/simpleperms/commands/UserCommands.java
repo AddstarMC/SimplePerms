@@ -2,10 +2,12 @@ package au.com.addstar.simpleperms.commands;
 
 import java.util.UUID;
 
+import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import au.com.addstar.simpleperms.PermissionManager;
 import au.com.addstar.simpleperms.permissions.PermissionBase;
+import au.com.addstar.simpleperms.permissions.PermissionGroup;
 
 public class UserCommands extends ObjectCommands
 {
@@ -38,5 +40,12 @@ public class UserCommands extends ObjectCommands
 		}
 		
 		return manager.getUser(id);
+	}
+	
+	@SuppressWarnings( "deprecation" )
+	@Override
+	public void listObjects( CommandSender sender )
+	{
+		sender.sendMessage("User listing is not available");
 	}
 }

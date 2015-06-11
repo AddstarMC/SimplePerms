@@ -1,5 +1,7 @@
 package au.com.addstar.simpleperms;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -100,6 +102,11 @@ public class PermissionManager
 		
 		backend.addObject(group);
 		return group;
+	}
+	
+	public Collection<PermissionGroup> getGroups()
+	{
+		return Collections.unmodifiableCollection(groups.values());
 	}
 	
 	public PermsPlugin getPlugin()

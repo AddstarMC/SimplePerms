@@ -43,9 +43,9 @@ public class BaseCommand extends Command
 	
 	private void handleObjectCommands(CommandSender sender, ObjectCommands executor, String[] args)
 	{
-		if (args.length < 2)
+		if (args.length == 1 || (args.length == 2 && args[1].equalsIgnoreCase("list")))
 		{
-			sender.sendMessage("/!perm " + executor.getName() + " <" + executor.getName() + "> [<params>...]");
+			executor.listObjects(sender);
 			return;
 		}
 		
