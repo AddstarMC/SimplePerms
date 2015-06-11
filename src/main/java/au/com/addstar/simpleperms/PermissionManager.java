@@ -1,5 +1,6 @@
 package au.com.addstar.simpleperms;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -50,11 +51,37 @@ public class PermissionManager
 	
 	public PermissionUser getUser(UUID id)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		PermissionUser user = cachedUsers.getIfPresent(id);
+		if (user != null)
+			return user;
+		
+		// Load it
+		user = backend.loadUser(id);
+		List<String> parents = backend.loadParents(id);
+		for (String parentName : parents)
+		{
+			PermissionGroup parent = groups.get(parentName.toLowerCase());
+			if (parent == null)
+				continue;
+			
+			user.addParent(parent);
+		}
+		
+		// Cache it
+		cachedUsers.put(id, user);
+		
+		plugin.getLogger().info("Loaded player " + id);
+		
+		return user;
 	}
 	
 	public PermissionGroup getGroup(String name)
 	{
 		return groups.get(name.toLowerCase());
+	}
+	
+	public PermsPlugin getPlugin()
+	{
+		return plugin;
 	}
 }

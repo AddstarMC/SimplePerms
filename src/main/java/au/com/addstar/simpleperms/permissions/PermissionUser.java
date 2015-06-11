@@ -12,4 +12,9 @@ public class PermissionUser extends PermissionBase
 		super(rawPermissions);
 		this.id = id;
 	}
+	
+	public UUID getId()
+	{
+		return id;
+	}
 }

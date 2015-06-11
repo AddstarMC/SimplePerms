@@ -17,6 +17,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import net.md_5.bungee.config.Configuration;
 import au.com.addstar.simpleperms.permissions.PermissionBase;
 import au.com.addstar.simpleperms.permissions.PermissionGroup;
@@ -145,7 +146,7 @@ public class MySQLBackend implements IBackend
 			for (String name : names)
 			{
 				groups.put(name.toLowerCase(), new PermissionGroup(name, loadPermissions(name)));
-				parents.putAll(name, loadParents(name));
+				parents.putAll(name, loadParents0(name));
 			}
 			
 			// Compute hierarchy
@@ -190,7 +191,7 @@ public class MySQLBackend implements IBackend
 		return permissions;
 	}
 	
-	private List<String> loadParents(String objectId) throws SQLException
+	private List<String> loadParents0(String objectId) throws SQLException
 	{
 		List<String> parents = Lists.newArrayList();
 		
@@ -210,6 +211,34 @@ public class MySQLBackend implements IBackend
 	}
 	
 	@Override
+	public List<String> loadParents( String groupName )
+	{
+		try
+		{
+			return loadParents0(groupName);
+		}
+		catch (SQLException e)
+		{
+			logger.log(Level.SEVERE, "Failed to load parents for group " + groupName, e);
+			return Collections.emptyList();
+		}
+	}
+	
+	@Override
+	public List<String> loadParents( UUID userId )
+	{
+		try
+		{
+			return loadParents0(userId.toString());
+		}
+		catch (SQLException e)
+		{
+			logger.log(Level.SEVERE, "Failed to load parents for user " + userId, e);
+			return Collections.emptyList();
+		}
+	}
+	
+	@Override
 	public PermissionGroup loadGroup(String groupName)
 	{
 		throw new UnsupportedOperationException("Not yet implemented");
@@ -218,7 +247,15 @@ public class MySQLBackend implements IBackend
 	@Override
 	public PermissionUser loadUser(UUID userId)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		try
+		{
+			return new PermissionUser(userId, loadPermissions(userId.toString()));
+		}
+		catch (SQLException e)
+		{
+			logger.log(Level.SEVERE, "Failed to load user " + userId, e);
+			return new PermissionUser(userId, Collections.<String>emptyList());
+		}
 	}
 	
 	@Override

@@ -20,6 +20,8 @@ public class PermsPlugin extends Plugin
 		
 		permManager = new PermissionManager(this);
 		permManager.load();
+		
+		getProxy().getPluginManager().registerListener(this, new PermissionListener(permManager));
 	}
 	
 	@Override
