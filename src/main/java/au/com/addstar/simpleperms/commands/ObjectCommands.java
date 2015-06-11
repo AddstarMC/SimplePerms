@@ -173,7 +173,10 @@ public abstract class ObjectCommands
 			return;
 		}
 		
-		throw new UnsupportedOperationException("Not yet implemented");
+		object.addPermission(args[0]);
+		object.rebuildPermissions();
+		
+		sender.sendMessage(ChatColor.GREEN + args[0] + " was added to " + object.getName());
 	}
 	
 	private void onRemove(CommandSender sender, PermissionBase object, String[] args)
@@ -183,8 +186,11 @@ public abstract class ObjectCommands
 			displayUsage(sender, object, "remove <permission>");
 			return;
 		}
+
+		object.removePermission(args[0]);
+		object.rebuildPermissions();
 		
-		throw new UnsupportedOperationException("Not yet implemented");
+		sender.sendMessage(ChatColor.GREEN + args[0] + " was removed from " + object.getName());
 	}
 	
 	// ====================================

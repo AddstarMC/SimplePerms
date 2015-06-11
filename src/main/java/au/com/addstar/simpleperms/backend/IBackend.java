@@ -20,7 +20,9 @@ public interface IBackend
 	
 	public List<String> loadParents(UUID userId);
 	
-	public void save(PermissionBase object);
+	public void addPermission(PermissionBase object, String permission);
+	
+	public void removePermission(PermissionBase object, String permission);
 	
 	public void shutdown();
 	

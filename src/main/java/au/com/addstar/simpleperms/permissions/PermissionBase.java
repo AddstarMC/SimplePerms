@@ -4,11 +4,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import au.com.addstar.simpleperms.backend.IBackend;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public abstract class PermissionBase
 {
+	private IBackend backend;
+	
 	private List<PermissionGroup> parents;
 	
 	private List<String> rawPermissions;
@@ -16,13 +20,36 @@ public abstract class PermissionBase
 	private Map<String, Boolean> staticPermissions;
 	private Map<String[], Boolean> dynamicPermissions;
 	
-	protected PermissionBase(List<String> rawPermissions)
+	protected PermissionBase(List<String> rawPermissions, IBackend backend)
 	{
 		this.rawPermissions = rawPermissions;
+		this.backend = backend;
 		
 		parents = Lists.newArrayList();
 		staticPermissions = Maps.newHashMap();
 		dynamicPermissions = Maps.newHashMap();
+	}
+	
+	public void addPermission(String permission)
+	{
+		permission = permission.toLowerCase();
+		
+		if (rawPermissions.contains(permission))
+			return;
+		
+		rawPermissions.add(permission);
+		
+		backend.addPermission(this, permission);
+	}
+	
+	public void removePermission(String permission)
+	{
+		permission = permission.toLowerCase();
+		
+		if (!rawPermissions.remove(permission))
+			return;
+		
+		backend.removePermission(this, permission);
 	}
 	
 	public boolean hasPermission(String permission)
@@ -151,11 +178,6 @@ public abstract class PermissionBase
 	public void addParent(PermissionGroup parent)
 	{
 		parents.add(parent);
-	}
-	
-	public void save()
-	{
-		throw new UnsupportedOperationException("Not yet implemented");
 	}
 	
 	public List<String> getRawPermissions()

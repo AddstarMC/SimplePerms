@@ -31,6 +31,8 @@ public class MySQLBackend implements IBackend
 	private PreparedStatement loadGroups;
 	private PreparedStatement loadObject;
 	private PreparedStatement loadParents;
+	private PreparedStatement addPerm;
+	private PreparedStatement removePerm;
 	
 	public MySQLBackend(Configuration config, Logger logger)
 	{
@@ -116,6 +118,10 @@ public class MySQLBackend implements IBackend
 			loadGroups = connection.prepareStatement("SELECT `objectid` FROM `objects` WHERE `type`=1;");
 			loadObject = connection.prepareStatement("SELECT `permission` FROM `permissions` WHERE `objectid`=?;");
 			loadParents = connection.prepareStatement("SELECT `parentid` FROM `hierarchy` WHERE `childid`=?;");
+			
+			addPerm = connection.prepareStatement("INSERT INTO `permissions` VALUES (DEFAULT,?,?);");
+			removePerm = connection.prepareStatement("DELETE FROM `permissions` WHERE `objectid`=? AND `permission`=?;");
+			
 			return true;
 		}
 		catch (SQLException e)
@@ -145,7 +151,7 @@ public class MySQLBackend implements IBackend
 			
 			for (String name : names)
 			{
-				groups.put(name.toLowerCase(), new PermissionGroup(name, loadPermissions(name)));
+				groups.put(name.toLowerCase(), new PermissionGroup(name, loadPermissions(name), this));
 				parents.putAll(name, loadParents0(name));
 			}
 			
@@ -189,6 +195,36 @@ public class MySQLBackend implements IBackend
 		}
 		
 		return permissions;
+	}
+	
+	@Override
+	public void addPermission( PermissionBase object, String permission )
+	{
+		try
+		{
+			addPerm.setString(1, object.getName());
+			addPerm.setString(2, permission);
+			addPerm.executeUpdate();
+		}
+		catch (SQLException e)
+		{
+			logger.log(Level.SEVERE, "Failed to add permission '" + permission + "' to " + object.getName(), e);
+		}
+	}
+	
+	@Override
+	public void removePermission( PermissionBase object, String permission )
+	{
+		try
+		{
+			removePerm.setString(1, object.getName());
+			removePerm.setString(2, permission);
+			removePerm.executeUpdate();
+		}
+		catch (SQLException e)
+		{
+			logger.log(Level.SEVERE, "Failed to remove permission '" + permission + "' from " + object.getName(), e);
+		}
 	}
 	
 	private List<String> loadParents0(String objectId) throws SQLException
@@ -249,19 +285,13 @@ public class MySQLBackend implements IBackend
 	{
 		try
 		{
-			return new PermissionUser(userId, loadPermissions(userId.toString()));
+			return new PermissionUser(userId, loadPermissions(userId.toString()), this);
 		}
 		catch (SQLException e)
 		{
 			logger.log(Level.SEVERE, "Failed to load user " + userId, e);
-			return new PermissionUser(userId, Collections.<String>emptyList());
+			return new PermissionUser(userId, Collections.<String>emptyList(), this);
 		}
-	}
-	
-	@Override
-	public void save(PermissionBase object)
-	{
-		throw new UnsupportedOperationException("Not yet implemented");
 	}
 	
 	@Override
@@ -272,6 +302,9 @@ public class MySQLBackend implements IBackend
 			loadGroups.close();
 			loadObject.close();
 			loadParents.close();
+			addPerm.close();
+			removePerm.close();
+			
 			connection.close();
 		}
 		catch (SQLException e)
