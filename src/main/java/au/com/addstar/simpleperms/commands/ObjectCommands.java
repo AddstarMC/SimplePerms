@@ -265,6 +265,12 @@ public abstract class ObjectCommands
 			return;
 		}
 		
+		if (object instanceof PermissionGroup && object.getName().equals("default"))
+		{
+			sender.sendMessage(ChatColor.RED + "The default group cannot have parents");
+			return;
+		}
+		
 		switch (args[0].toLowerCase())
 		{
 		case "list":

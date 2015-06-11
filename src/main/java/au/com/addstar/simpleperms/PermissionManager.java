@@ -27,6 +27,7 @@ public class PermissionManager
 	
 	private Cache<UUID, PermissionUser> cachedUsers;
 	private Map<String, PermissionGroup> groups;
+	private PermissionGroup defaultGroup;
 	
 	public PermissionManager(PermsPlugin plugin)
 	{
@@ -35,7 +36,7 @@ public class PermissionManager
 		cachedUsers = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
 		groups = Maps.newHashMap();
 		
-		backend = new MySQLBackend(plugin.getConfigManager().getConfig(), plugin.getLogger());
+		backend = new MySQLBackend(plugin.getConfigManager().getConfig(), plugin.getLogger(), this);
 		if (!backend.isValid())
 			backend = null;
 	}
@@ -55,7 +56,10 @@ public class PermissionManager
 		for (PermissionGroup group : groups.values())
 			group.rebuildPermissions();
 		
-		plugin.getLogger().info("Loaded " + groups.size() + " permission groups");
+		if (groups.containsKey("default"))
+			defaultGroup = groups.get("default");
+		else
+			defaultGroup = new PermissionGroup("default", Lists.<String>newArrayList(), backend, this);
 	}
 	
 	public void loadUser(PendingConnection connection)
@@ -116,11 +120,16 @@ public class PermissionManager
 		if (group != null)
 			return group;
 		
-		group = new PermissionGroup(name, Lists.<String>newArrayList(), backend);
+		group = new PermissionGroup(name, Lists.<String>newArrayList(), backend, this);
 		groups.put(name.toLowerCase(), group);
 		
 		backend.addObject(group);
 		return group;
+	}
+	
+	public PermissionGroup getDefaultGroup()
+	{
+		return defaultGroup;
 	}
 	
 	public Collection<PermissionGroup> getGroups()

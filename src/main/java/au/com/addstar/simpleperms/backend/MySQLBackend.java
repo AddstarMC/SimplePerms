@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import net.md_5.bungee.config.Configuration;
+import au.com.addstar.simpleperms.PermissionManager;
 import au.com.addstar.simpleperms.permissions.PermissionBase;
 import au.com.addstar.simpleperms.permissions.PermissionGroup;
 import au.com.addstar.simpleperms.permissions.PermissionUser;
@@ -27,6 +28,7 @@ public class MySQLBackend implements IBackend
 {
 	private Connection connection;
 	private Logger logger;
+	private PermissionManager manager;
 	
 	private PreparedStatement loadGroups;
 	private PreparedStatement loadObject;
@@ -42,9 +44,10 @@ public class MySQLBackend implements IBackend
 	private PreparedStatement removeParent;
 	private PreparedStatement findUser;
 	
-	public MySQLBackend(Configuration config, Logger logger)
+	public MySQLBackend(Configuration config, Logger logger, PermissionManager manager)
 	{
 		this.logger = logger;
+		this.manager = manager;
 		
 		Configuration dbConfig = config.getSection("database");
 		
@@ -171,7 +174,7 @@ public class MySQLBackend implements IBackend
 			
 			for (String name : names)
 			{
-				groups.put(name.toLowerCase(), new PermissionGroup(name, loadPermissions(name), this));
+				groups.put(name.toLowerCase(), new PermissionGroup(name, loadPermissions(name), this, manager));
 				parents.putAll(name, loadParents0(name));
 			}
 			
@@ -354,12 +357,12 @@ public class MySQLBackend implements IBackend
 				addObject.executeUpdate();
 			}
 			
-			return new PermissionUser(userId, loadPermissions(userId.toString()), name, this);
+			return new PermissionUser(userId, loadPermissions(userId.toString()), name, this, manager);
 		}
 		catch (SQLException e)
 		{
 			logger.log(Level.SEVERE, "Failed to load user " + userId, e);
-			return new PermissionUser(userId, Lists.<String>newArrayList(), name, this);
+			return new PermissionUser(userId, Lists.<String>newArrayList(), name, this, manager);
 		}
 	}
 	

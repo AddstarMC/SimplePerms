@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import au.com.addstar.simpleperms.PermissionManager;
 import au.com.addstar.simpleperms.backend.IBackend;
 
 import com.google.common.collect.Lists;
@@ -13,6 +14,7 @@ import com.google.common.collect.Maps;
 public abstract class PermissionBase
 {
 	private IBackend backend;
+	private PermissionManager manager;
 	
 	private List<PermissionGroup> parents;
 	
@@ -21,10 +23,11 @@ public abstract class PermissionBase
 	private Map<String, Boolean> staticPermissions;
 	private Map<String[], Boolean> dynamicPermissions;
 	
-	protected PermissionBase(List<String> rawPermissions, IBackend backend)
+	protected PermissionBase(List<String> rawPermissions, IBackend backend, PermissionManager manager)
 	{
 		this.rawPermissions = rawPermissions;
 		this.backend = backend;
+		this.manager = manager;
 		
 		parents = Lists.newArrayList();
 		staticPermissions = Maps.newHashMap();
@@ -77,8 +80,8 @@ public abstract class PermissionBase
 				return value;
 		}
 		
-		// Not defined
-		return null;
+		// Lowest priority
+		return manager.getDefaultGroup().getPermission(permission);
 	}
 	
 	public Boolean hasLocalPermission(String permission)

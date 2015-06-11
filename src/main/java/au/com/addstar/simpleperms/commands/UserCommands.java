@@ -7,7 +7,6 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import au.com.addstar.simpleperms.PermissionManager;
 import au.com.addstar.simpleperms.permissions.PermissionBase;
-import au.com.addstar.simpleperms.permissions.PermissionGroup;
 
 public class UserCommands extends ObjectCommands
 {
