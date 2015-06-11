@@ -162,4 +162,6 @@ public abstract class PermissionBase
 	{
 		return Collections.unmodifiableList(rawPermissions);
 	}
+	
+	public abstract String getName();
 }

@@ -2,6 +2,7 @@ package au.com.addstar.simpleperms;
 
 import java.io.File;
 
+import au.com.addstar.simpleperms.commands.BaseCommand;
 import net.md_5.bungee.api.plugin.Plugin;
 
 public class PermsPlugin extends Plugin
@@ -22,6 +23,7 @@ public class PermsPlugin extends Plugin
 		permManager.load();
 		
 		getProxy().getPluginManager().registerListener(this, new PermissionListener(permManager));
+		getProxy().getPluginManager().registerCommand(this, new BaseCommand(permManager));
 	}
 	
 	@Override

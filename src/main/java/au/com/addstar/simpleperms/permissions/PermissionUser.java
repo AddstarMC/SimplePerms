@@ -17,4 +17,10 @@ public class PermissionUser extends PermissionBase
 	{
 		return id;
 	}
+	
+	@Override
+	public String getName()
+	{
+		return id.toString();
+	}
 }

@@ -12,6 +12,7 @@ public class PermissionGroup extends PermissionBase
 		this.name = name;
 	}
 	
+	@Override
 	public String getName()
 	{
 		return name;
