@@ -14,7 +14,7 @@ public abstract class PermissionBase
 	private List<String> rawPermissions;
 	
 	private Map<String, Boolean> staticPermissions;
-	private Map<String, Boolean> dynamicPermissions;
+	private Map<String[], Boolean> dynamicPermissions;
 	
 	protected PermissionBase(List<String> rawPermissions)
 	{
@@ -27,17 +27,120 @@ public abstract class PermissionBase
 	
 	public boolean hasPermission(String permission)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		Boolean value = getPermission(permission);
+		if (value != null)
+			return value;
+		else
+			return false;
 	}
 	
-	public boolean hasLocalPermission(String permission)
+	public Boolean getPermission(String permission)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		// Highest priority: local perm
+		Boolean value = getLocalPermission(permission);
+		if (value != null)
+			return value;
+		
+		// Next priority, groups
+		for (PermissionGroup group : parents)
+		{
+			value = group.getPermission(permission);
+			if (value != null)
+				return value;
+		}
+		
+		// Not defined
+		return null;
+	}
+	
+	public Boolean hasLocalPermission(String permission)
+	{
+		Boolean value = getLocalPermission(permission);
+		if (value != null)
+			return value;
+		else
+			return false;
+	}
+	
+	public Boolean getLocalPermission(String permission)
+	{
+		permission = permission.toLowerCase();
+		
+		// Check static perms
+		Boolean value = staticPermissions.get(permission);
+		if (value != null)
+			return value;
+		
+		// Check dynamic permissions
+		Map.Entry<String[], Boolean> mostSpecific = null;
+		int bestMatch = 0;
+		
+		// Find the most specific matching glob
+		for (Map.Entry<String[], Boolean> entry : dynamicPermissions.entrySet())
+		{
+			int matchPos = globMatches(entry.getKey(), permission);
+			if (matchPos > bestMatch)
+			{
+				mostSpecific = entry;
+				bestMatch = matchPos;
+			}
+		}
+		
+		if (mostSpecific != null)
+			return mostSpecific.getValue();
+		else
+			return null;
+	}
+	
+	private int globMatches(String[] glob, String permission)
+	{
+		int index = 0;
+		boolean match = true;
+		
+		for (String section : glob)
+		{
+			if (index == 0)
+			{
+				match = permission.startsWith(section);
+				index += section.length();
+			}
+			else
+			{
+				int start = permission.indexOf(section, index);
+				match = (start != -1);
+				index = start + section.length();
+			}
+			
+			if (!match)
+				break;
+		}
+		
+		if (match)
+			return index;
+		else
+			return 0;
 	}
 	
 	public void rebuildPermissions()
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		staticPermissions.clear();
+		dynamicPermissions.clear();
+		
+		// Sort into static and dynamic perms
+		for (String rawPermission : rawPermissions)
+		{
+			boolean value = true;
+			if (rawPermission.startsWith("-"))
+			{
+				value = false;
+				rawPermission = rawPermission.substring(1);
+			}
+			
+			if (rawPermission.contains("*"))
+				dynamicPermissions.put(rawPermission.toLowerCase().split("\\*"), value);
+			else
+				staticPermissions.put(rawPermission.toLowerCase(), value);
+		}
 	}
 	
 	public List<PermissionGroup> parents()
@@ -57,6 +160,6 @@ public abstract class PermissionBase
 	
 	public List<String> getRawPermissions()
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		return Collections.unmodifiableList(rawPermissions);
 	}
 }

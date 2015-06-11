@@ -46,6 +46,9 @@ public class PermissionManager
 			return;
 		
 		groups = backend.loadAllGroups();
+		for (PermissionGroup group : groups.values())
+			group.rebuildPermissions();
+		
 		plugin.getLogger().info("Loaded " + groups.size() + " permission groups");
 	}
 	
@@ -66,6 +69,8 @@ public class PermissionManager
 			
 			user.addParent(parent);
 		}
+		
+		user.rebuildPermissions();
 		
 		// Cache it
 		cachedUsers.put(id, user);
