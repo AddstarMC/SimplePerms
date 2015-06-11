@@ -80,6 +80,10 @@ public abstract class PermissionBase
 				return value;
 		}
 		
+		// Dont recuse on default group
+		if (this == manager.getDefaultGroup())
+			return null;
+		
 		// Lowest priority
 		return manager.getDefaultGroup().getPermission(permission);
 	}

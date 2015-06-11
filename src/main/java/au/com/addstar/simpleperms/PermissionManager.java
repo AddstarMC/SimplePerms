@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.PendingConnection;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import au.com.addstar.simpleperms.backend.IBackend;
 import au.com.addstar.simpleperms.backend.MySQLBackend;
 import au.com.addstar.simpleperms.permissions.PermissionBase;
@@ -57,9 +58,21 @@ public class PermissionManager
 			group.rebuildPermissions();
 		
 		if (groups.containsKey("default"))
+		{
 			defaultGroup = groups.get("default");
+			if (!defaultGroup.parents().isEmpty())
+			{
+				plugin.getLogger().warning("default group has parents " + defaultGroup.parents());
+				defaultGroup.setParents(Collections.<PermissionGroup>emptyList());
+			}
+		}
 		else
 			defaultGroup = new PermissionGroup("default", Lists.<String>newArrayList(), backend, this);
+		
+		// We need to reload any users that are online
+		cachedUsers.invalidateAll();
+		for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers())
+			loadUser(player.getPendingConnection());
 	}
 	
 	public void loadUser(PendingConnection connection)
@@ -85,6 +98,11 @@ public class PermissionManager
 		user.setParentsInternal(parentGroups);
 		user.rebuildPermissions();
 		
+		// Cache it
+		cachedUsers.put(id, user);
+		
+		plugin.getLogger().info("Loaded player " + id);
+		
 		return user;
 	}
 	
@@ -95,11 +113,6 @@ public class PermissionManager
 			return user;
 		
 		user = loadUser(id, null);
-		
-		// Cache it
-		cachedUsers.put(id, user);
-		
-		plugin.getLogger().info("Loaded player " + id);
 		
 		return user;
 	}

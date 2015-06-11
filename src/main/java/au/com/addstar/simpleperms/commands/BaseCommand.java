@@ -11,12 +11,15 @@ import net.md_5.bungee.api.plugin.Command;
 @SuppressWarnings( "deprecation" )
 public class BaseCommand extends Command
 {
+	private PermissionManager manager;
 	private UserCommands userCommands;
 	private GroupCommands groupCommands;
 	
 	public BaseCommand(PermissionManager manager)
 	{
 		super("!perm", "simpleperms.manage", "!perms");
+		this.manager = manager;
+		
 		userCommands = new UserCommands(manager);
 		groupCommands = new GroupCommands(manager);
 	}
@@ -37,6 +40,12 @@ public class BaseCommand extends Command
 			break;
 		case "group":
 			handleObjectCommands(sender, groupCommands, args);
+			break;
+		case "reload":
+			onReload(sender);
+			break;
+		default:
+			sender.sendMessage(ChatColor.RED + "Unknown command " + args[0]);
 			break;
 		}
 	}
@@ -64,5 +73,11 @@ public class BaseCommand extends Command
 		{
 			sender.sendMessage(ChatColor.RED + e.getMessage());
 		}
+	}
+	
+	private void onReload(CommandSender sender)
+	{
+		manager.load();
+		sender.sendMessage(ChatColor.GOLD + "All permissions reloaded");
 	}
 }
